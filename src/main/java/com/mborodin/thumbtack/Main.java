@@ -1,4 +1,4 @@
-package com.mborodin.thumbtack.simpledb;
+package com.mborodin.thumbtack;
 
 public class Main {
     public static void main(String[] args) {
