@@ -7,10 +7,24 @@ apply plugin: 'application'
 
 sourceCompatibility = '1.8'
 
+mainClassName = 'com.mborodin.thumbtack.simpledb.Main'
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+//create a single Jar with all dependencies
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Simple DB challenge from thumbtack',
+                'Implementation-Version': version,
+                'Main-Class': mainClassName
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }
