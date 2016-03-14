@@ -27,7 +27,7 @@ public class SimpleDB<K, V> implements DB<K, V> {
 
     public void rollback() throws NoTransactionException {
         if (transactions.isEmpty()) {
-            throw new NoTransactionException("No opened transactions");
+            throw new NoTransactionException("ROLLBACK: No opened transactions");
         }
         transactions.pop().forEach((k, v) -> {
                 if (v == null) {
@@ -47,7 +47,10 @@ public class SimpleDB<K, V> implements DB<K, V> {
     }
 
     public void commit() throws NoTransactionException {
-        throw new UnsupportedOperationException();
+        if (transactions.isEmpty()) {
+            throw new NoTransactionException("COMMIT: No opened transactions");
+        }
+        transactions.clear();
     }
 
     public void set(K key, V value) {
