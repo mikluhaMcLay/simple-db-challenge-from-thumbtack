@@ -56,4 +56,106 @@ public class SimpleDBTest {
         assertThat(simpleDB.countByValue("value"), equalTo(0L));
         assertThat(simpleDB.countByValue("value-1"), equalTo(2L));
     }
+
+    @Test
+    public void testGetSetInTransaction() throws Exception {
+        simpleDB.set("1", "value-1");
+        simpleDB.set("2", "value-2");
+
+        simpleDB.begin();
+        assertThat(simpleDB.get("1"), equalTo("value-1"));
+        assertThat(simpleDB.get("2"), equalTo("value-2"));
+        assertThat(simpleDB.get("3"), nullValue());
+        simpleDB.set("3", "value-3");
+        simpleDB.set("2", "new value-2");
+        assertThat(simpleDB.get("1"), equalTo("value-1"));
+        assertThat(simpleDB.get("2"), equalTo("new value-2"));
+        assertThat(simpleDB.get("3"), equalTo("value-3"));
+    }
+
+    @Test
+    public void testRollback() throws Exception {
+        simpleDB.set("1", "value-1");
+        simpleDB.set("2", "value-2");
+
+        // transaction 1
+        simpleDB.begin();
+        simpleDB.set("1", "tr-1-value-1");
+        simpleDB.set("2", "tr-1-value-2");
+        simpleDB.set("3", "VALUE");
+
+        assertThat(simpleDB.get("1"), equalTo("tr-1-value-1"));
+        assertThat(simpleDB.get("2"), equalTo("tr-1-value-2"));
+        assertThat(simpleDB.get("3"), equalTo("VALUE"));
+        assertThat(simpleDB.countByValue("VALUE"), equalTo(1L));
+        assertThat(simpleDB.countByValue("value-1"), equalTo(0L));
+
+        // transaction 2
+        simpleDB.begin();
+        simpleDB.set("1", "tr-2-value-1");
+        simpleDB.set("2", "VALUE");
+        simpleDB.set("4", "VALUE");
+        simpleDB.unset("3");
+
+        assertThat(simpleDB.get("1"), equalTo("tr-2-value-1"));
+        assertThat(simpleDB.get("2"), equalTo("VALUE"));
+        assertThat(simpleDB.get("3"), nullValue());
+        assertThat(simpleDB.get("4"), equalTo("VALUE"));
+        assertThat(simpleDB.countByValue("VALUE"), equalTo(2L));
+        assertThat(simpleDB.countByValue("tr-2-value-1"), equalTo(1L));
+
+        // transaction 1
+        simpleDB.rollback();
+        assertThat(simpleDB.get("1"), equalTo("tr-1-value-1"));
+        assertThat(simpleDB.get("2"), equalTo("tr-1-value-2"));
+        assertThat(simpleDB.get("3"), equalTo("VALUE"));
+        assertThat(simpleDB.get("4"), nullValue());
+        assertThat(simpleDB.countByValue("VALUE"), equalTo(1L));
+        assertThat(simpleDB.countByValue("tr-2-value-1"), equalTo(0L));
+        assertThat(simpleDB.countByValue("tr-1-value-1"), equalTo(1L));
+
+        // transaction 3
+        simpleDB.begin();
+        simpleDB.unset("1");
+        simpleDB.unset("2");
+        simpleDB.unset("3");
+        simpleDB.unset("4");
+        simpleDB.unset("5");
+        assertThat(simpleDB.get("1"), nullValue());
+        assertThat(simpleDB.get("2"), nullValue());
+        assertThat(simpleDB.get("3"), nullValue());
+        assertThat(simpleDB.get("4"), nullValue());
+        assertThat(simpleDB.get("5"), nullValue());
+        assertThat(simpleDB.countByValue("VALUE"), equalTo(0L));
+        assertThat(simpleDB.countByValue("value-1"), equalTo(0L));
+        assertThat(simpleDB.countByValue("tr-1-value-1"), equalTo(0L));
+
+        // transaction 1
+        simpleDB.rollback();
+        assertThat(simpleDB.get("1"), equalTo("tr-1-value-1"));
+        assertThat(simpleDB.get("2"), equalTo("tr-1-value-2"));
+        assertThat(simpleDB.get("3"), equalTo("VALUE"));
+        assertThat(simpleDB.get("4"), nullValue());
+        assertThat(simpleDB.get("5"), nullValue());
+        assertThat(simpleDB.countByValue("VALUE"), equalTo(1L));
+        assertThat(simpleDB.countByValue("value-1"), equalTo(0L));
+        assertThat(simpleDB.countByValue("tr-1-value-1"), equalTo(1L));
+
+        // before transactions
+        simpleDB.rollback();
+        assertThat(simpleDB.get("1"), equalTo("value-1"));
+        assertThat(simpleDB.get("2"), equalTo("value-2"));
+        assertThat(simpleDB.get("3"), nullValue());
+        assertThat(simpleDB.get("4"), nullValue());
+        assertThat(simpleDB.get("5"), nullValue());
+        assertThat(simpleDB.countByValue("VALUE"), equalTo(0L));
+        assertThat(simpleDB.countByValue("value-1"), equalTo(1L));
+        assertThat(simpleDB.countByValue("value-2"), equalTo(1L));
+        assertThat(simpleDB.countByValue("tr-1-value-1"), equalTo(0L));
+    }
+
+    @Test(expected = NoTransactionException.class)
+    public void testRollbackThrowsExceptionWhenNoOpenedTransaction() throws Exception {
+        simpleDB.rollback();
+    }
 }

@@ -8,9 +8,9 @@ import java.util.Map;
 public class SimpleDB<K, V> implements DB<K, V> {
     public static final SimpleDB INSTANCE = new SimpleDB();
 
-    private final Map<K, V> workingMemory = new HashMap<K, V>();
-    private final Deque<Map<K, V>> transactions = new ArrayDeque<Map<K, V>>();
-    private final Map<V, Long> countByValue = new HashMap<V, Long>();
+    private final Map<K, V> workingMemory = new HashMap<>();
+    private final Deque<Map<K, V>> transactions = new ArrayDeque<>();
+    private final Map<V, Long> countByValue = new HashMap<>();
 
     private SimpleDB() {
     }
@@ -22,11 +22,28 @@ public class SimpleDB<K, V> implements DB<K, V> {
     }
 
     public void begin() {
-        throw new UnsupportedOperationException();
+        transactions.push(new HashMap<>());
     }
 
     public void rollback() throws NoTransactionException {
-        throw new UnsupportedOperationException();
+        if (transactions.isEmpty()) {
+            throw new NoTransactionException("No opened transactions");
+        }
+        transactions.pop().forEach((k, v) -> {
+                if (v == null) {
+                    V pValue = workingMemory.remove(k);
+                    if (pValue!=null){
+                        updateCountByValue(pValue, -1);
+                    }
+                } else {
+                    V pValue = workingMemory.put(k, v);
+                    updateCountByValue(v, 1);
+                    if (pValue != null) {
+                        updateCountByValue(pValue, -1);
+                    }
+                }
+            }
+        );
     }
 
     public void commit() throws NoTransactionException {
@@ -59,8 +76,8 @@ public class SimpleDB<K, V> implements DB<K, V> {
     }
 
     private void saveInTransaction(K key, V value) {
-        if (!transactions.isEmpty() && !transactions.getLast().containsKey(key)) {
-            transactions.getLast().put(key, value);
+        if (!transactions.isEmpty() && !transactions.peek().containsKey(key)) {
+            transactions.peek().put(key, value);
         }
     }
 
