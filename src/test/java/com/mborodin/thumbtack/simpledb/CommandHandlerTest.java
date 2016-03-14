@@ -89,7 +89,7 @@ public class CommandHandlerTest {
         });
     }
 
-    private void test(TestInputOutput[] tests) {
+    private void test(TestInputOutput[] tests) throws CommandException {
         for (TestInputOutput test : tests) {
             assertThat(handler.execute(test.input), equalTo(test.output));
         }
