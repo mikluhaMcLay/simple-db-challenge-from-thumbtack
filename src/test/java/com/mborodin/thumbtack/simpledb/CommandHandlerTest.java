@@ -16,8 +16,7 @@ public class CommandHandlerTest {
                 new TestInputOutput("SET ex 10", ""),
                 new TestInputOutput("GET ex", "10"),
                 new TestInputOutput("UNSET ex", ""),
-                new TestInputOutput("GET ex", "NULL"),
-                new TestInputOutput("END", "")});
+                new TestInputOutput("GET ex", "NULL")});
     }
 
     @Test
@@ -98,7 +97,7 @@ public class CommandHandlerTest {
     private class TestInputOutput {
         String input, output;
 
-        public TestInputOutput(String input, String output) {
+        TestInputOutput(String input, String output) {
             this.input = input;
             this.output = output;
         }
