@@ -1,6 +1,13 @@
 package com.mborodin.thumbtack.simpledb;
 
+/**
+ *
+ */
 public class CommandHandler {
+    /**
+     * Since the only input is stdin, we don't have to think about concurrency issues.
+     * So we can use non-thread-safe implementations of in-memory DB.
+     */
     private final DB<String, String> db = SimpleDB.INSTANCE;
 
     public String execute(String command) throws CommandException {

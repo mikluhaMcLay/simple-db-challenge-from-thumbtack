@@ -27,6 +27,7 @@ public interface DB<K, V> {
     /**
      * Sets the variable <tt>key</tt> to the value <tt>value</tt>.
      * Neither keys nor values can contain spaces.
+     * Should have an average-case runtime of O(log N) or better.
      *
      * @param key
      * @param value
@@ -36,6 +37,7 @@ public interface DB<K, V> {
     /**
      * the <tt>value</tt> associated with the <tt>key</tt>
      * or NULL if there's no mapping the <tt>key</tt>.
+     * Should have an average-case runtime of O(log N) or better.
      *
      * @param key
      */
@@ -43,6 +45,7 @@ public interface DB<K, V> {
 
     /**
      * Removes mapping for the <tt>key</tt> if any.
+     * Should have an average-case runtime of O(log N) or better.
      *
      * @param key
      * @return previously associated value.
